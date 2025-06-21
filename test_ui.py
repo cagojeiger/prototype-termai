@@ -5,11 +5,9 @@ Test UI Components - Basic TUI Testing
 This module contains tests for the Terminal AI Assistant TUI components.
 """
 
-from textual.app import App
-from textual.widgets import Static
+from ui.ai_sidebar import AISidebar
 from ui.app import TerminalAIApp
 from ui.terminal_widget import TerminalWidget
-from ui.ai_sidebar import AISidebar
 
 
 def test_app_creation():
@@ -25,7 +23,7 @@ def test_layout_composition():
     assert ".ai-sidebar" in app.CSS
     assert "width: 65%" in app.CSS
     assert "width: 35%" in app.CSS
-    
+
     binding_keys = [binding[0] for binding in app.BINDINGS]
     assert "ctrl+c" in binding_keys
     assert "ctrl+l" in binding_keys
@@ -37,12 +35,12 @@ def test_layout_composition():
 def test_keyboard_shortcuts():
     """Test keyboard shortcut actions."""
     app = TerminalAIApp()
-    
-    assert hasattr(app, 'action_quit')
-    assert hasattr(app, 'action_clear_terminal')
-    assert hasattr(app, 'action_toggle_ai')
-    assert hasattr(app, 'action_help')
-    assert hasattr(app, 'action_focus_next')
+
+    assert hasattr(app, "action_quit")
+    assert hasattr(app, "action_clear_terminal")
+    assert hasattr(app, "action_toggle_ai")
+    assert hasattr(app, "action_help")
+    assert hasattr(app, "action_focus_next")
 
 
 def test_terminal_widget_creation():
@@ -62,12 +60,12 @@ def test_ai_sidebar_creation():
 def test_ai_sidebar_message_handling():
     """Test AI sidebar message functionality."""
     sidebar = AISidebar()
-    
+
     sidebar.messages.append(("12:00:00", "Test", "This is a test message"))
     sidebar.message_count = 1
     assert sidebar.message_count == 1
     assert len(sidebar.messages) == 1
-    
+
     sidebar.messages.clear()
     sidebar.message_count = 0
     assert sidebar.message_count == 0
@@ -77,46 +75,47 @@ def test_ai_sidebar_message_handling():
 def test_ai_sidebar_basic_functionality():
     """Test AI sidebar basic functionality without DOM operations."""
     sidebar = AISidebar()
-    
+
     assert sidebar is not None
-    assert hasattr(sidebar, 'messages')
-    assert hasattr(sidebar, 'message_count')
-    assert hasattr(sidebar, 'ai_status')
+    assert hasattr(sidebar, "messages")
+    assert hasattr(sidebar, "message_count")
+    assert hasattr(sidebar, "ai_status")
 
 
 if __name__ == "__main__":
     print("🧪 Running UI Component Tests...")
-    
+
     try:
         test_app_creation()
         print("✅ App creation test passed")
-        
+
         test_layout_composition()
         print("✅ Layout composition test passed")
-        
+
         test_keyboard_shortcuts()
         print("✅ Keyboard shortcuts test passed")
-        
+
         test_terminal_widget_creation()
         print("✅ Terminal widget creation test passed")
-        
+
         test_ai_sidebar_creation()
         print("✅ AI sidebar creation test passed")
-        
+
         test_ai_sidebar_message_handling()
         print("✅ AI sidebar message handling test passed")
-        
+
         test_ai_sidebar_basic_functionality()
         print("✅ AI sidebar basic functionality test passed")
-        
+
         print("\n🎉 All UI component tests passed!")
-        
+
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         exit(1)
-    
+
     print("\n💡 To run the actual TUI application:")
     print("   uv run python main.py")
     print("   uv run python main.py --test-mode")
