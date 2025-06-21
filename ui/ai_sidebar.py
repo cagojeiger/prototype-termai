@@ -38,6 +38,10 @@ class AISidebar(Static):
         super().__init__(**kwargs)
         self.ai_analyzer = ai_analyzer
         self.messages: List[Tuple[str, str, str]] = []  # (timestamp, title, content)
+        self.is_analyzing = False
+
+        if self.ai_analyzer:
+            self._register_ai_callbacks()
 
     def compose(self):
         """Compose the AI sidebar layout."""
@@ -143,7 +147,12 @@ class AISidebar(Static):
             self.add_message("오류", "AI가 비활성화되어 있습니다. Ctrl+A로 활성화하세요.")
             return
 
-        self.add_message("분석", "현재 터미널 컨텍스트를 분석 중입니다...")
+        if self.is_analyzing:
+            self.add_message("알림", "이미 분석이 진행 중입니다. 잠시 기다려주세요.")
+            return
+
+        self.is_analyzing = True
+        self.add_message("분석", "🔄 현재 터미널 컨텍스트를 분석 중입니다...")
 
         if self.ai_analyzer:
             self._request_ai_analysis()
@@ -153,8 +162,38 @@ class AISidebar(Static):
     def _request_ai_analysis(self) -> None:
         """Request AI analysis from the analyzer."""
         if self.ai_analyzer:
-            self.add_message("AI 분석", "✅ AI 시스템이 연결되어 있습니다.\n실제 분석 기능은 터미널 통합 후 활성화됩니다.")
+            import asyncio
+
+            try:
+                loop = asyncio.get_event_loop()
+                loop.create_task(self._perform_ai_analysis())
+            except RuntimeError:
+                asyncio.run(self._perform_ai_analysis())
         else:
+            self._show_placeholder_analysis()
+
+    async def _perform_ai_analysis(self) -> None:
+        """Perform actual AI analysis using the analyzer."""
+        if not self.ai_analyzer:
+            self._show_placeholder_analysis()
+            return
+
+        try:
+            context_summary = self.ai_analyzer.context_manager.get_context_summary()
+            response = await self.ai_analyzer.suggest_commands(
+                intent="분석 현재 터미널 상태와 제안사항 제공", context=context_summary
+            )
+
+            if response and response.content:
+                self.add_message("AI 분석", response.content)
+            else:
+                self.add_message(
+                    "AI 분석", "✅ AI 시스템이 연결되어 있습니다.\n현재 컨텍스트에서 특별한 제안사항이 없습니다."
+                )
+
+        except Exception as e:
+            self.add_message("AI 오류", f"AI 분석 중 오류가 발생했습니다: {str(e)}")
+            self.is_analyzing = False
             self._show_placeholder_analysis()
 
     def _show_placeholder_analysis(self) -> None:
@@ -180,11 +219,13 @@ class AISidebar(Static):
 
     def on_ai_response(self, response) -> None:
         """Handle AI response from the analyzer."""
-        if hasattr(response, 'content') and response.content:
+        if hasattr(response, "content") and response.content:
             self.add_message("AI 응답", response.content)
-        
-        if hasattr(response, 'suggestions') and response.suggestions:
-            suggestions_text = "\n".join([f"• {suggestion}" for suggestion in response.suggestions])
+
+        if hasattr(response, "suggestions") and response.suggestions:
+            suggestions_text = "\n".join(
+                [f"• {suggestion}" for suggestion in response.suggestions]
+            )
             self.add_message("제안사항", suggestions_text)
 
     def on_focus(self) -> None:
@@ -194,3 +235,71 @@ class AISidebar(Static):
     def on_blur(self) -> None:
         """Called when the widget loses focus."""
         self.remove_class("focused")
+
+    def _register_ai_callbacks(self) -> None:
+        """Register callbacks for AI analysis events."""
+        if not self.ai_analyzer:
+            return
+
+        self.ai_analyzer.register_callback(
+            "analysis_completed", self._on_analysis_completed
+        )
+        self.ai_analyzer.register_callback("error_analyzed", self._on_error_analyzed)
+        self.ai_analyzer.register_callback(
+            "commands_suggested", self._on_commands_suggested
+        )
+        self.ai_analyzer.register_callback("analysis_failed", self._on_analysis_failed)
+
+    def _on_analysis_completed(self, data: dict) -> None:
+        """Handle completed AI analysis."""
+        response = data.get("response")
+        if response and hasattr(response, "content"):
+            self._display_ai_response("분석 완료", response.content)
+
+    def _on_error_analyzed(self, data: dict) -> None:
+        """Handle error analysis completion."""
+        response = data.get("response")
+        command = data.get("command", "")
+        if response and hasattr(response, "content"):
+            title = f"오류 분석: {command[:30]}..."
+            self._display_ai_response(title, response.content)
+
+    def _on_commands_suggested(self, data: dict) -> None:
+        """Handle command suggestions."""
+        response = data.get("response")
+        intent = data.get("intent", "")
+        if response and hasattr(response, "content"):
+            title = f"명령어 제안: {intent[:20]}..."
+            self._display_ai_response(title, response.content)
+
+    def _on_analysis_failed(self, data: dict) -> None:
+        """Handle failed AI analysis."""
+        error = data.get("error", "알 수 없는 오류")
+        self.add_message("AI 오류", f"분석 실패: {error}")
+        self.is_analyzing = False
+
+    def _display_ai_response(self, title: str, content: str) -> None:
+        """Display AI response with improved formatting."""
+        formatted_content = self._format_ai_content(content)
+        self.add_message(title, formatted_content)
+        self.is_analyzing = False
+
+    def _format_ai_content(self, content: str) -> str:
+        """Format AI response content for better display."""
+        if not content:
+            return "응답 내용이 없습니다."
+
+        formatted = content.strip()
+
+        formatted = formatted.replace("•", "\n• ")
+        formatted = formatted.replace("- ", "\n• ")
+
+        formatted = formatted.replace("제안사항:", "\n💡 제안사항:")
+        formatted = formatted.replace("해결방법:", "\n🔧 해결방법:")
+        formatted = formatted.replace("주의사항:", "\n⚠️ 주의사항:")
+        formatted = formatted.replace("설명:", "\n📝 설명:")
+
+        while "\n\n\n" in formatted:
+            formatted = formatted.replace("\n\n\n", "\n\n")
+
+        return formatted.strip()
