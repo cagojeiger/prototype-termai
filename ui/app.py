@@ -5,7 +5,6 @@ This module contains the main Textual application class that orchestrates
 the terminal and AI sidebar components in a split-panel interface.
 """
 
-from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Footer, Header
@@ -18,10 +17,10 @@ class TerminalAIApp(App):
     """Main Terminal AI Assistant TUI Application."""
 
     TITLE = "Terminal AI Assistant"
-    
+
     def __init__(self, ai_analyzer=None, **kwargs):
         """Initialize the Terminal AI Application.
-        
+
         Args:
             ai_analyzer: Optional RealtimeAnalyzer instance for AI features.
         """
@@ -68,14 +67,9 @@ class TerminalAIApp(App):
 
         with Horizontal(id="main-container"):
             yield TerminalWidget(
-                test_mode=True, 
-                classes="terminal-area",
-                ai_analyzer=self.ai_analyzer
+                test_mode=True, classes="terminal-area", ai_analyzer=self.ai_analyzer
             )
-            yield AISidebar(
-                classes="ai-sidebar",
-                ai_analyzer=self.ai_analyzer
-            )
+            yield AISidebar(classes="ai-sidebar", ai_analyzer=self.ai_analyzer)
 
         yield Footer()
 
