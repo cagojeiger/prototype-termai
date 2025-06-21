@@ -84,9 +84,9 @@ async def test_context_management():
         context_manager = ContextManager()
         
         test_commands = [
-            ("ls -la", "/home/user", 0, "total 8\ndrwxr-xr-x 2 user user 4096", "", 0.1),
+            ("ls -la", "/home/user", 0, "total 8\\ndrwxr-xr-x 2 user user 4096", "", 0.1),
             ("cd /nonexistent", "/home/user", 1, "", "cd: /nonexistent: No such file or directory", 0.05),
-            ("git status", "/home/user/project", 0, "On branch main\nnothing to commit", "", 0.2),
+            ("git status", "/home/user/project", 0, "On branch main\\nnothing to commit", "", 0.2),
         ]
         
         for cmd, dir, exit_code, output, error, duration in test_commands:

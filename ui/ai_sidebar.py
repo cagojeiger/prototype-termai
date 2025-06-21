@@ -28,13 +28,15 @@ class AISidebar(Static):
             self.content = content
             super().__init__()
 
-    def __init__(self, **kwargs):
+    def __init__(self, ai_analyzer=None, **kwargs):
         """Initialize the AI sidebar.
 
         Args:
+            ai_analyzer: Optional RealtimeAnalyzer instance for AI features
             **kwargs: Additional keyword arguments passed to Static
         """
         super().__init__(**kwargs)
+        self.ai_analyzer = ai_analyzer
         self.messages: List[Tuple[str, str, str]] = []  # (timestamp, title, content)
 
     def compose(self):
@@ -143,7 +145,17 @@ class AISidebar(Static):
 
         self.add_message("분석", "현재 터미널 컨텍스트를 분석 중입니다...")
 
-        self._show_placeholder_analysis()
+        if self.ai_analyzer:
+            self._request_ai_analysis()
+        else:
+            self._show_placeholder_analysis()
+
+    def _request_ai_analysis(self) -> None:
+        """Request AI analysis from the analyzer."""
+        if self.ai_analyzer:
+            self.add_message("AI 분석", "✅ AI 시스템이 연결되어 있습니다.\n실제 분석 기능은 터미널 통합 후 활성화됩니다.")
+        else:
+            self._show_placeholder_analysis()
 
     def _show_placeholder_analysis(self) -> None:
         """Show placeholder AI analysis (for testing)."""
@@ -165,6 +177,15 @@ class AISidebar(Static):
         """
 
         self.add_message("AI 분석", analysis_result)
+
+    def on_ai_response(self, response) -> None:
+        """Handle AI response from the analyzer."""
+        if hasattr(response, 'content') and response.content:
+            self.add_message("AI 응답", response.content)
+        
+        if hasattr(response, 'suggestions') and response.suggestions:
+            suggestions_text = "\n".join([f"• {suggestion}" for suggestion in response.suggestions])
+            self.add_message("제안사항", suggestions_text)
 
     def on_focus(self) -> None:
         """Called when the widget gains focus."""
