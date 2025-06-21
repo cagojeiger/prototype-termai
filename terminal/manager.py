@@ -121,6 +121,7 @@ class TerminalManager:
         if self.command_running:
             if self._is_prompt_line(text):
                 import asyncio
+
                 try:
                     loop = asyncio.get_event_loop()
                     loop.create_task(self._end_command(0))  # 성공으로 가정
@@ -134,6 +135,7 @@ class TerminalManager:
         """프로세스 종료 처리"""
         if self.command_running:
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 loop.create_task(self._end_command(exit_code))
@@ -156,7 +158,9 @@ class TerminalManager:
             if len(lines) > 1:
                 error = "\n".join(lines[-3:])  # 마지막 3줄
 
-        duration = time.time() - self.command_start_time if self.command_start_time else 0
+        duration = (
+            time.time() - self.command_start_time if self.command_start_time else 0
+        )
 
         self.history.end_command(exit_code, output, error or "")
 
@@ -167,7 +171,7 @@ class TerminalManager:
                 exit_code=exit_code,
                 output=output,
                 error=error or "",
-                duration=duration
+                duration=duration,
             )
 
         if self.on_command_end:

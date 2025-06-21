@@ -125,7 +125,8 @@ class AISidebar(Static):
         messages_container.remove_children()
 
         welcome_widget = Static(
-            "메시지가 지워졌습니다.\n\n새로운 명령어를 실행하면 AI 분석이 시작됩니다.", classes="message"
+            "메시지가 지워졌습니다.\n\n새로운 명령어를 실행하면 AI 분석이 시작됩니다.",
+            classes="message",
         )
         messages_container.mount(welcome_widget)
 
@@ -144,7 +145,9 @@ class AISidebar(Static):
     def _handle_analyze_button(self) -> None:
         """Handle Analyze button press."""
         if not self.ai_status:
-            self.add_message("오류", "AI가 비활성화되어 있습니다. Ctrl+A로 활성화하세요.")
+            self.add_message(
+                "오류", "AI가 비활성화되어 있습니다. Ctrl+A로 활성화하세요."
+            )
             return
 
         if self.is_analyzing:
@@ -188,7 +191,8 @@ class AISidebar(Static):
                 self.add_message("AI 분석", response.content)
             else:
                 self.add_message(
-                    "AI 분석", "✅ AI 시스템이 연결되어 있습니다.\n현재 컨텍스트에서 특별한 제안사항이 없습니다."
+                    "AI 분석",
+                    "✅ AI 시스템이 연결되어 있습니다.\n현재 컨텍스트에서 특별한 제안사항이 없습니다.",
                 )
 
         except Exception as e:

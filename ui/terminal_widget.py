@@ -51,7 +51,7 @@ class TerminalWidget(Static):
         super().__init__(**kwargs)
         self.test_mode = test_mode
         self.ai_analyzer = ai_analyzer
-        self.terminal_manager: Optional["TerminalManager"] = None
+        self.terminal_manager: Optional[TerminalManager] = None
         self.console = Console()
 
         if not test_mode and TerminalManager is not None:

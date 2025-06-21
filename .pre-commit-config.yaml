@@ -1,11 +1,11 @@
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: "0.7.6"
+    rev: "0.7.13"
     hooks:
       - id: uv-lock
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -16,20 +16,20 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
         args: [--line-length=88]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.8
+    rev: v0.12.0
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --ignore=C901]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+    rev: v1.16.1
     hooks:
       - id: mypy
         args: [--ignore-missing-imports, --no-warn-unused-ignores, --allow-untyped-defs, --allow-incomplete-defs, --no-strict-optional]
