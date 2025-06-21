@@ -27,19 +27,19 @@ source venv/bin/activate
 ```
 
 #### 패키지 설치 실패
-**문제**: `pip install -r requirements.txt` 실패
+**문제**: `uv sync` 또는 의존성 설치 실패
 
 **해결**:
 ```bash
-# pip 업그레이드
-pip install --upgrade pip
+# uv 업그레이드
+uv self update
 
 # 캐시 삭제 후 재설치
-pip cache purge
-pip install --no-cache-dir -r requirements.txt
+uv cache clean
+uv sync --reinstall
 
 # 특정 패키지 문제시
-pip install textual==0.47.1 --force-reinstall
+uv add textual==0.47.1 --force
 ```
 
 ### 2. Ollama 관련 문제
@@ -217,13 +217,13 @@ def should_refresh(self):
 async def periodic_cleanup(self):
     while True:
         await asyncio.sleep(300)  # 5분마다
-        
+
         # 오래된 캐시 제거
         self.cleanup_old_cache()
-        
+
         # 가비지 컬렉션
         gc.collect()
-        
+
         # 히스토리 크기 제한
         if len(self.history) > 1000:
             self.history = self.history[-500:]
@@ -294,8 +294,8 @@ journalctl -f -u ollama  # Linux
 python -m cProfile -o profile.stats main.py
 
 # 메모리 프로파일링
-pip install memory_profiler
-python -m memory_profiler main.py
+uv add --dev memory_profiler
+uv run python -m memory_profiler main.py
 ```
 
 ### 8. 일반적인 에러 메시지
@@ -305,8 +305,8 @@ python -m memory_profiler main.py
 # PYTHONPATH 설정
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
-# 또는 setup.py 설치
-pip install -e .
+# 또는 개발 모드 설치
+uv pip install -e .
 ```
 
 #### `asyncio.TimeoutError`
@@ -350,7 +350,7 @@ except BrokenPipeError:
 echo "=== System Info ===" > diagnostics.txt
 uname -a >> diagnostics.txt
 python --version >> diagnostics.txt
-pip list >> diagnostics.txt
+uv pip list >> diagnostics.txt
 echo "=== Logs ===" >> diagnostics.txt
 tail -n 100 app.log >> diagnostics.txt
 ```

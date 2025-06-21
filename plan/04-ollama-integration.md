@@ -54,11 +54,11 @@ class AIResponse:
 
 class OllamaClient:
     """Ollama API 클라이언트"""
-    
+
     def __init__(self, config: OllamaConfig = None):
         self.config = config or OllamaConfig()
         self.client = httpx.AsyncClient(timeout=self.config.timeout)
-        
+
     async def check_health(self) -> bool:
         """Ollama 서버 상태 확인"""
         try:
@@ -67,7 +67,7 @@ class OllamaClient:
         except Exception as e:
             logger.error(f"Ollama health check failed: {e}")
             return False
-            
+
     async def list_models(self) -> List[str]:
         """사용 가능한 모델 목록"""
         try:
@@ -77,9 +77,9 @@ class OllamaClient:
         except Exception as e:
             logger.error(f"Failed to list models: {e}")
             return []
-            
-    async def generate(self, 
-                      prompt: str, 
+
+    async def generate(self,
+                      prompt: str,
                       stream: bool = True) -> AsyncGenerator[str, None]:
         """텍스트 생성 (스트리밍)"""
         payload = {
@@ -91,14 +91,14 @@ class OllamaClient:
             },
             "stream": stream
         }
-        
+
         try:
             response = await self.client.post(
                 f"{self.config.host}/api/generate",
                 json=payload,
                 timeout=None  # 스트리밍은 타임아웃 없음
             )
-            
+
             if stream:
                 async for line in response.aiter_lines():
                     if line:
@@ -108,28 +108,28 @@ class OllamaClient:
             else:
                 data = response.json()
                 yield data["response"]
-                
+
         except Exception as e:
             logger.error(f"Generation failed: {e}")
             yield f"Error: {str(e)}"
-            
+
     async def analyze_context(self, context: Dict[str, Any]) -> AIResponse:
         """터미널 컨텍스트 분석"""
         start_time = datetime.now()
-        
+
         # 프롬프트 생성
         prompt = self._build_analysis_prompt(context)
-        
+
         # AI 응답 수집
         response_text = ""
         async for chunk in self.generate(prompt):
             response_text += chunk
-            
+
         # 응답 파싱
         parsed = self._parse_analysis_response(response_text)
-        
+
         processing_time = (datetime.now() - start_time).total_seconds()
-        
+
         return AIResponse(
             content=response_text,
             suggestions=parsed.get("suggestions", []),
@@ -139,7 +139,7 @@ class OllamaClient:
             timestamp=start_time,
             processing_time=processing_time
         )
-        
+
     def _build_analysis_prompt(self, context: Dict[str, Any]) -> str:
         """분석 프롬프트 생성"""
         command = context.get("command", "")
@@ -147,7 +147,7 @@ class OllamaClient:
         error = context.get("error", "")
         cwd = context.get("cwd", "")
         history = context.get("history", [])
-        
+
         prompt = f"""You are a helpful terminal assistant. Analyze the following terminal context and provide assistance.
 
 Current Directory: {cwd}
@@ -167,18 +167,18 @@ Format your response as JSON with keys: suggestions, warnings, errors
 Each should be a list of strings.
 """
         return prompt
-        
+
     def _format_history(self, history: List[Dict]) -> str:
         """히스토리 포맷팅"""
         if not history:
             return "No recent commands"
-            
+
         formatted = []
         for cmd in history[-5:]:  # 최근 5개만
             formatted.append(f"- {cmd.get('command', '')} (exit: {cmd.get('exit_code', 'N/A')})")
-            
+
         return "\n".join(formatted)
-        
+
     def _parse_analysis_response(self, response: str) -> Dict[str, List[str]]:
         """AI 응답 파싱"""
         # JSON 추출 시도
@@ -186,26 +186,26 @@ Each should be a list of strings.
             # JSON 블록 찾기
             start = response.find("{")
             end = response.rfind("}") + 1
-            
+
             if start >= 0 and end > start:
                 json_str = response[start:end]
                 return json.loads(json_str)
         except:
             pass
-            
+
         # 휴리스틱 파싱
         result = {
             "suggestions": [],
             "warnings": [],
             "errors": []
         }
-        
+
         lines = response.split("\n")
         current_section = None
-        
+
         for line in lines:
             line = line.strip()
-            
+
             if "suggestion" in line.lower():
                 current_section = "suggestions"
             elif "warning" in line.lower():
@@ -215,9 +215,9 @@ Each should be a list of strings.
             elif line.startswith("-") or line.startswith("*"):
                 if current_section:
                     result[current_section].append(line[1:].strip())
-                    
+
         return result
-        
+
     async def close(self):
         """클라이언트 종료"""
         await self.client.aclose()
@@ -242,7 +242,7 @@ class PromptType(Enum):
 
 class PromptTemplate:
     """프롬프트 템플릿 관리"""
-    
+
     templates = {
         PromptType.COMMAND_ANALYSIS: """As a terminal assistant, analyze this command execution:
 
@@ -299,19 +299,19 @@ Include:
 3. Important flags/options
 4. Related commands"""
     }
-    
+
     @classmethod
     def get_prompt(cls, prompt_type: PromptType, **kwargs) -> str:
         """프롬프트 생성"""
         template = cls.templates.get(prompt_type, "")
         return template.format(**kwargs)
-        
+
     @classmethod
     def create_context_prompt(cls, context: Dict[str, Any]) -> str:
         """컨텍스트 기반 프롬프트 자동 선택"""
         exit_code = context.get("exit_code", 0)
         error = context.get("error", "")
-        
+
         # 에러가 있으면 에러 진단
         if exit_code != 0 or error:
             return cls.get_prompt(
@@ -320,7 +320,7 @@ Include:
                 error=error,
                 exit_code=exit_code
             )
-            
+
         # 일반 명령어 분석
         return cls.get_prompt(
             PromptType.COMMAND_ANALYSIS,
@@ -357,31 +357,31 @@ class Trigger:
     pattern: Optional[str] = None
     priority: int = 5
     description: str = ""
-    
+
     def matches(self, context: Dict[str, Any]) -> bool:
         """트리거 매칭 확인"""
         if self.type == TriggerType.ERROR:
             return context.get("exit_code", 0) != 0
-            
+
         elif self.type == TriggerType.PATTERN and self.pattern:
             command = context.get("command", "")
             output = context.get("output", "")
             return bool(re.search(self.pattern, command + output))
-            
+
         elif self.type == TriggerType.KEYWORD and self.pattern:
             command = context.get("command", "").lower()
             return self.pattern.lower() in command
-            
+
         return False
 
 
 class TriggerManager:
     """AI 트리거 관리"""
-    
+
     def __init__(self):
         self.triggers = self._init_default_triggers()
         self.enabled = True
-        
+
     def _init_default_triggers(self) -> List[Trigger]:
         """기본 트리거 설정"""
         return [
@@ -391,7 +391,7 @@ class TriggerManager:
                 priority=10,
                 description="명령어 실행 실패"
             ),
-            
+
             # 위험 명령어 패턴
             Trigger(
                 type=TriggerType.PATTERN,
@@ -399,7 +399,7 @@ class TriggerManager:
                 priority=10,
                 description="위험한 삭제 명령어"
             ),
-            
+
             # Git 에러
             Trigger(
                 type=TriggerType.PATTERN,
@@ -407,7 +407,7 @@ class TriggerManager:
                 priority=8,
                 description="Git 에러"
             ),
-            
+
             # 권한 에러
             Trigger(
                 type=TriggerType.PATTERN,
@@ -415,7 +415,7 @@ class TriggerManager:
                 priority=8,
                 description="권한 에러"
             ),
-            
+
             # 도움 요청
             Trigger(
                 type=TriggerType.KEYWORD,
@@ -423,44 +423,44 @@ class TriggerManager:
                 priority=5,
                 description="도움말 요청"
             ),
-            
+
             # 설치 명령어
             Trigger(
                 type=TriggerType.PATTERN,
-                pattern=r"pip install|npm install|apt install|brew install",
+                pattern=r"uv add|npm install|apt install|brew install",
                 priority=3,
                 description="패키지 설치"
             ),
         ]
-        
+
     def should_trigger(self, context: Dict[str, Any]) -> Optional[Trigger]:
         """트리거 확인"""
         if not self.enabled:
             return None
-            
+
         # 매칭되는 트리거 찾기
         matched_triggers = [
             trigger for trigger in self.triggers
             if trigger.matches(context)
         ]
-        
+
         if not matched_triggers:
             return None
-            
+
         # 우선순위가 가장 높은 트리거 반환
         return max(matched_triggers, key=lambda t: t.priority)
-        
+
     def add_trigger(self, trigger: Trigger):
         """트리거 추가"""
         self.triggers.append(trigger)
-        
+
     def remove_trigger(self, description: str):
         """트리거 제거"""
         self.triggers = [
             t for t in self.triggers
             if t.description != description
         ]
-        
+
     def set_enabled(self, enabled: bool):
         """트리거 활성화/비활성화"""
         self.enabled = enabled
@@ -481,46 +481,46 @@ from ai.triggers import TriggerManager
 async def test_ollama_connection():
     """Ollama 연결 테스트"""
     print("=== Ollama 연결 테스트 ===\n")
-    
+
     client = OllamaClient()
-    
+
     # 상태 확인
     is_healthy = await client.check_health()
     print(f"Ollama 서버 상태: {'정상' if is_healthy else '오류'}")
-    
+
     if not is_healthy:
         print("Ollama 서버가 실행중이 아닙니다. 'ollama serve'를 실행하세요.")
         return False
-        
+
     # 모델 목록
     models = await client.list_models()
     print(f"사용 가능한 모델: {models}")
-    
+
     return True
 
 
 async def test_generation():
     """텍스트 생성 테스트"""
     print("\n=== 텍스트 생성 테스트 ===\n")
-    
+
     client = OllamaClient()
-    
+
     prompt = "Write a simple Python hello world function"
     print(f"프롬프트: {prompt}")
     print("응답: ", end="", flush=True)
-    
+
     async for chunk in client.generate(prompt):
         print(chunk, end="", flush=True)
-        
+
     print("\n")
 
 
 async def test_context_analysis():
     """컨텍스트 분석 테스트"""
     print("\n=== 컨텍스트 분석 테스트 ===\n")
-    
+
     client = OllamaClient()
-    
+
     # 테스트 컨텍스트
     context = {
         "command": "git push origin main",
@@ -533,21 +533,21 @@ async def test_context_analysis():
             {"command": "git commit -m 'Update'", "exit_code": 0}
         ]
     }
-    
+
     print("분석 중...")
     response = await client.analyze_context(context)
-    
+
     print(f"\n모델: {response.model}")
     print(f"처리 시간: {response.processing_time:.2f}초")
-    
+
     print("\n제안사항:")
     for suggestion in response.suggestions:
         print(f"  - {suggestion}")
-        
+
     print("\n경고:")
     for warning in response.warnings:
         print(f"  - {warning}")
-        
+
     print("\n에러 해결:")
     for error in response.errors:
         print(f"  - {error}")
@@ -556,9 +556,9 @@ async def test_context_analysis():
 def test_triggers():
     """트리거 시스템 테스트"""
     print("\n=== 트리거 시스템 테스트 ===\n")
-    
+
     manager = TriggerManager()
-    
+
     # 테스트 케이스
     test_cases = [
         {
@@ -578,11 +578,11 @@ def test_triggers():
             "context": {"command": "ls -la", "exit_code": 0}
         }
     ]
-    
+
     for test in test_cases:
         trigger = manager.should_trigger(test["context"])
         print(f"{test['name']}: ", end="")
-        
+
         if trigger:
             print(f"트리거됨 - {trigger.description} (우선순위: {trigger.priority})")
         else:
@@ -594,12 +594,12 @@ async def main():
     # Ollama 연결 확인
     if not await test_ollama_connection():
         return
-        
+
     # 각 기능 테스트
     await test_generation()
     await test_context_analysis()
     test_triggers()
-    
+
     print("\n모든 테스트 완료!")
 
 

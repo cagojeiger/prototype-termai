@@ -42,8 +42,12 @@
 ## 테스트 실행
 
 ```bash
-cd ~/project/test-tui
-source venv/bin/activate
+cd ~/project/prototype-termai
+# uv를 사용한 실행 (권장)
+uv run python test_terminal.py
+
+# 또는 가상환경 활성화 후 실행
+source .venv/bin/activate
 python test_terminal.py
 ```
 

@@ -193,8 +193,8 @@ python -c "import pstats; p = pstats.Stats('profile.stats'); p.sort_stats('time'
 - [ ] 트러블슈팅 가이드
 
 ### 2. 패키징
-- [ ] requirements.txt 최종화
-- [ ] setup.py 작성
+- [ ] pyproject.toml 최종화
+- [ ] 빌드 시스템 설정
 - [ ] 실행 스크립트
 - [ ] 설치 가이드
 
