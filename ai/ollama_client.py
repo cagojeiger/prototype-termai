@@ -89,7 +89,7 @@ class OllamaClient:
             return models
 
         except Exception as e:
-            raise ConnectionError(f"Failed to fetch models from Ollama: {e}")
+            raise ConnectionError(f"Failed to fetch models from Ollama: {e}") from e
 
     async def generate(
         self, prompt: str, model: Optional[str] = None, stream: bool = False, **options
@@ -134,14 +134,14 @@ class OllamaClient:
             else:
                 return await self._handle_single_response(response, start_time)
 
-        except httpx.TimeoutException:
-            raise TimeoutError(f"Ollama request timed out after {self.timeout}s")
+        except httpx.TimeoutException as e:
+            raise TimeoutError(f"Ollama request timed out after {self.timeout}s") from e
         except httpx.HTTPStatusError as e:
             raise ConnectionError(
                 f"Ollama API error: {e.response.status_code} - {e.response.text}"
-            )
+            ) from e
         except Exception as e:
-            raise RuntimeError(f"Unexpected error during Ollama request: {e}")
+            raise RuntimeError(f"Unexpected error during Ollama request: {e}") from e
 
     async def _handle_single_response(
         self, response: httpx.Response, start_time: float

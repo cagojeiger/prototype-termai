@@ -135,7 +135,9 @@ class ContextManager:
     async def get_next_analysis_request(self) -> Optional[AIAnalysisRequest]:
         """Get the next analysis request from the queue."""
         try:
-            request = await asyncio.wait_for(self.analysis_queue.get(), timeout=1.0)
+            request: AIAnalysisRequest = await asyncio.wait_for(
+                self.analysis_queue.get(), timeout=1.0
+            )
             return request
         except asyncio.TimeoutError:
             return None

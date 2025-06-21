@@ -7,7 +7,7 @@ to remove sensitive information and noise from terminal context.
 
 import re
 from dataclasses import replace
-from typing import Dict
+from typing import Any, Dict, List, Tuple
 
 from .context import CommandContext
 
@@ -56,7 +56,7 @@ class ContextFilter:
             (r"^.{500,}$", lambda m: m.group(0)[:500] + "[TRUNCATED]"),
         ]
 
-        self.compiled_noise_patterns = [
+        self.compiled_noise_patterns: List[Tuple[Any, Any]] = [
             (re.compile(pattern, re.MULTILINE), replacement)
             for pattern, replacement in self.noise_patterns
         ]
@@ -282,7 +282,7 @@ class ContextFilter:
             compiled_pattern = re.compile(pattern, re.IGNORECASE | re.DOTALL)
             self.compiled_patterns.append((compiled_pattern, replacement))
         except re.error as e:
-            raise ValueError(f"Invalid regex pattern '{pattern}': {e}")
+            raise ValueError(f"Invalid regex pattern '{pattern}': {e}") from e
 
     def remove_sensitive_pattern(self, pattern: str) -> bool:
         """Remove a sensitive pattern."""
