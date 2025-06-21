@@ -1,13 +1,20 @@
-# Project Context: prototype-termai Migration to uv
+# Project Context: prototype-termai Development Progress
 
 ## Session Overview
 **Date**: June 21, 2025
-**Task**: Migrate prototype-termai from pip/venv to uv-based dependency management with pre-commit integration
-**Status**: ✅ COMPLETED
-**PR**: https://github.com/cagojeiger/prototype-termai/pull/1
+**Task**: Terminal AI Assistant Development - Checkpoint 1 & 2 Implementation
+**Status**: ✅ Checkpoint 1 & 2 COMPLETED
+**PRs**: 
+- Checkpoint 1 (uv Migration): https://github.com/cagojeiger/prototype-termai/pull/1
+- Checkpoint 2 (TUI Framework): https://github.com/cagojeiger/prototype-termai/pull/2
 
 ## Project Description
 prototype-termai is a Terminal AI Assistant that provides real-time AI-powered assistance for terminal operations using local LLM models through Ollama. The system watches terminal activity and offers contextual help, error solutions, and command suggestions in a non-intrusive sidebar.
+
+**Current Implementation Status:**
+- ✅ **Checkpoint 1**: uv dependency management migration with pre-commit integration
+- ✅ **Checkpoint 2**: Complete TUI framework with 65%/35% split layout, terminal widget, AI sidebar, and comprehensive keyboard shortcuts
+- 🔄 **Next**: Checkpoint 3 - Ollama AI integration for real-time assistance
 
 ## Migration Summary
 
@@ -60,17 +67,23 @@ prototype-termai/
 ├── uv.lock                 # Locked dependencies (42 packages)
 ├── .pre-commit-config.yaml # Code quality automation
 ├── .env.example           # Environment template
+├── main.py                # Application entry point ✅ NEW
 ├── terminal/              # Terminal emulation modules
 │   ├── __init__.py
 │   ├── buffer.py          # Output buffer with ANSI processing
 │   ├── emulator.py        # PTY-based terminal wrapper
 │   ├── history.py         # Command history management
 │   └── manager.py         # Terminal integration manager
-├── ui/                    # TUI components (placeholder)
+├── ui/                    # TUI components ✅ IMPLEMENTED
+│   ├── __init__.py
+│   ├── app.py             # Main TUI application (65%/35% layout) ✅ NEW
+│   ├── terminal_widget.py # Terminal display widget (65% width) ✅ NEW
+│   └── ai_sidebar.py      # AI assistant sidebar (35% width) ✅ NEW
 ├── ai/                    # AI integration (placeholder)
 ├── utils/                 # Utilities (placeholder)
 ├── tests/                 # Test directory
-└── test_terminal.py       # Terminal functionality tests
+├── test_terminal.py       # Terminal functionality tests
+└── test_ui.py             # UI component tests ✅ NEW
 ```
 
 ### 4. Documentation Updates
@@ -132,8 +145,12 @@ OutputBuffer       # ANSI-aware output processing
 CommandHistory     # Command tracking and statistics
 TerminalManager    # Integration layer
 
+# TUI Framework implemented ✅:
+TerminalAIApp      # Main Textual application with 65%/35% layout
+TerminalWidget     # Terminal display component (65% width)
+AISidebar          # AI assistant panel (35% width)
+
 # Placeholder modules for future:
-ui/     # Textual TUI framework components
 ai/     # Ollama LLM integration
 utils/  # Event bus, performance profiling
 ```
@@ -143,8 +160,12 @@ utils/  # Event bus, performance profiling
 # Setup new environment:
 uv sync
 
+# Run the TUI application:
+uv run python main.py
+
 # Run tests:
-uv run python test_terminal.py
+uv run python test_terminal.py  # Terminal functionality (6 tests)
+uv run python test_ui.py        # UI components (7 tests) ✅ NEW
 
 # Development tools:
 uv run black .
@@ -171,20 +192,22 @@ Migration follows patterns from **cagojeiger/cli-onprem**:
 
 ## Next Development Steps
 
-### Immediate (Checkpoint 2-3)
-1. Implement Textual TUI framework
-2. Create terminal/AI sidebar layout
-3. Add real-time output streaming
+### Immediate (Checkpoint 3) 🔄 NEXT
+1. ✅ ~~Implement Textual TUI framework~~ **COMPLETED**
+2. ✅ ~~Create terminal/AI sidebar layout~~ **COMPLETED**
+3. Integrate real PTY terminal with TUI framework
+4. Implement Ollama client integration
+5. Add real-time AI analysis triggers
 
 ### Medium-term (Checkpoint 4-5)
-1. Integrate Ollama client
-2. Implement context management
-3. Add AI trigger system
+1. Implement smart context management
+2. Add AI trigger system for errors and commands
+3. Performance optimization and caching
 
 ### Long-term (Checkpoint 6-7)
-1. Performance optimization
-2. Advanced features (caching, prefetching)
-3. Production deployment
+1. Advanced features (prefetching, learning)
+2. Production deployment and packaging
+3. Extended AI capabilities
 
 ## Environment Setup for AI Assistants
 
@@ -201,8 +224,12 @@ git clone https://github.com/cagojeiger/prototype-termai
 cd prototype-termai
 uv sync
 
+# Run application:
+uv run python main.py  # Launch TUI application ✅ NEW
+
 # Development:
-uv run python test_terminal.py
+uv run python test_terminal.py  # Terminal tests (6 tests)
+uv run python test_ui.py        # UI tests (7 tests) ✅ NEW
 uv run pre-commit install
 
 # Testing changes:
@@ -213,13 +240,20 @@ uv run mypy terminal/
 
 ### Important Files to Understand
 1. `pyproject.toml` - Project configuration and dependencies
-2. `terminal/emulator.py` - Core terminal wrapper implementation
-3. `terminal/buffer.py` - ANSI-aware output processing
-4. `test_terminal.py` - Comprehensive test suite
-5. `CLAUDE.md` - AI assistant development guide
+2. `main.py` - Application entry point ✅ NEW
+3. `ui/app.py` - Main TUI application with 65%/35% layout ✅ NEW
+4. `ui/terminal_widget.py` - Terminal display component ✅ NEW
+5. `ui/ai_sidebar.py` - AI assistant sidebar ✅ NEW
+6. `terminal/emulator.py` - Core terminal wrapper implementation
+7. `terminal/buffer.py` - ANSI-aware output processing
+8. `test_terminal.py` - Terminal functionality tests (6 tests)
+9. `test_ui.py` - UI component tests (7 tests) ✅ NEW
+10. `CLAUDE.md` - AI assistant development guide
 
-## Migration Success Metrics
-- ✅ All 6 tests pass with uv
+## Development Success Metrics
+
+### Checkpoint 1 (uv Migration) ✅
+- ✅ All 6 terminal tests pass with uv
 - ✅ Pre-commit hooks work correctly
 - ✅ 42 dependencies resolved and locked
 - ✅ No functionality regressions
@@ -227,4 +261,48 @@ uv run mypy terminal/
 - ✅ Code quality improved (type annotations, formatting)
 - ✅ Development workflow streamlined
 
-This migration establishes a solid foundation for continued development of the Terminal AI Assistant with modern Python tooling and automated code quality checks.
+### Checkpoint 2 (TUI Framework) ✅
+- ✅ Complete TUI application with Textual framework
+- ✅ 65%/35% split layout (terminal + AI sidebar)
+- ✅ All 7 UI component tests pass
+- ✅ Comprehensive keyboard shortcuts (Ctrl+C, Ctrl+L, Ctrl+A, F1, Tab)
+- ✅ Korean language support throughout UI
+- ✅ Professional CSS styling with borders and proper spacing
+- ✅ Reactive UI updates and message system
+- ✅ Test mode functionality for development
+- ✅ Pre-commit linting integration (Black, Ruff, MyPy)
+
+## TUI Framework Features Implemented
+
+### Main Application (`ui/app.py`)
+- **TerminalAIApp**: Main Textual application class
+- **Layout**: 65% terminal area + 35% AI sidebar
+- **Keyboard Shortcuts**: 
+  - `Ctrl+C`: Quit application
+  - `Ctrl+L`: Clear terminal display
+  - `Ctrl+A`: Toggle AI assistant on/off
+  - `F1`: Show comprehensive help (in Korean)
+  - `Tab`: Focus navigation between widgets
+
+### Terminal Widget (`ui/terminal_widget.py`)
+- **65% Width**: Left panel terminal display
+- **Test Mode**: Korean test content for development
+- **Input Handling**: Keyboard input processing
+- **Integration Ready**: Prepared for real TerminalManager integration
+- **ANSI Support**: Framework for terminal escape sequences
+
+### AI Sidebar (`ui/ai_sidebar.py`)
+- **35% Width**: Right panel AI assistant
+- **Status Display**: Visual AI active/disabled indicator (🟢/🔴)
+- **Message System**: Scrollable messages with timestamps
+- **Interactive Controls**: Clear and Analyze buttons
+- **Korean Language**: Complete Korean localization
+- **Reactive Updates**: Real-time status and message updates
+
+### Testing Framework (`test_ui.py`)
+- **7 Test Cases**: Complete UI component validation
+- **100% Pass Rate**: All tests successful
+- **Component Testing**: App creation, layout, widgets, functionality
+- **Error Handling**: Graceful handling of unmounted widgets
+
+This establishes a complete TUI foundation for the Terminal AI Assistant, ready for Checkpoint 3 (Ollama AI integration) and real-time terminal assistance features.
