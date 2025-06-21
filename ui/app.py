@@ -8,6 +8,7 @@ the terminal and AI sidebar components in a split-panel interface.
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Header, Footer, Static
+from .terminal_widget import TerminalWidget
 
 
 class TerminalAIApp(App):
@@ -53,7 +54,7 @@ class TerminalAIApp(App):
         yield Header()
         
         with Horizontal(id="main-container"):
-            yield Static("Terminal Area (65%)\n\n$ ls -la\ntotal 24\ndrwxr-xr-x  5 user\n-rw-r--r--  1 user\n\n$ _", classes="terminal-area")
+            yield TerminalWidget(test_mode=True, classes="terminal-area")
             yield Static("🤖 AI Assistant\n🟢 AI Active\n\n┌──────────────────┐\n│ Suggestions      │\n│ will appear      │\n│ here...          │\n└──────────────────┘\n\n[Clear] [Analyze]", classes="ai-sidebar")
             
         yield Footer()
@@ -64,7 +65,11 @@ class TerminalAIApp(App):
     
     def action_clear_terminal(self) -> None:
         """Clear the terminal display."""
-        pass
+        try:
+            terminal_widget = self.query_one(TerminalWidget)
+            terminal_widget.clear()
+        except Exception as e:
+            self.log(f"Error clearing terminal: {e}")
     
     def action_toggle_ai(self) -> None:
         """Toggle AI assistance on/off."""
