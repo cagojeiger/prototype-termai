@@ -142,7 +142,7 @@ class TerminalManager:
             if len(lines) > 1:
                 error = "\n".join(lines[-3:])  # 마지막 3줄
 
-        self.history.end_command(exit_code, output, error)
+        self.history.end_command(exit_code, output, error or "")
 
         if self.on_command_end:
             self.on_command_end(self.current_command, exit_code)
