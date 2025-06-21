@@ -1,1 +1,1 @@
-# test-tui
+# prototype-termai
