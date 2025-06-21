@@ -15,6 +15,32 @@ class TerminalAIApp(App):
     
     TITLE = "Terminal AI Assistant"
     
+    CSS = """
+    .terminal-area {
+        width: 65%;
+        border: solid $primary;
+        margin: 1;
+        padding: 1;
+    }
+    
+    .ai-sidebar {
+        width: 35%;
+        border: solid $secondary;
+        margin: 1;
+        padding: 1;
+    }
+    
+    Header {
+        dock: top;
+        height: 3;
+    }
+    
+    Footer {
+        dock: bottom;
+        height: 1;
+    }
+    """
+    
     BINDINGS = [
         ("ctrl+c", "quit", "Quit"),
         ("ctrl+l", "clear_terminal", "Clear"),
@@ -26,9 +52,9 @@ class TerminalAIApp(App):
         """Compose the application layout."""
         yield Header()
         
-        with Horizontal():
-            yield Static("Terminal Area (65%)", classes="terminal-area")
-            yield Static("AI Sidebar (35%)", classes="ai-sidebar")
+        with Horizontal(id="main-container"):
+            yield Static("Terminal Area (65%)\n\n$ ls -la\ntotal 24\ndrwxr-xr-x  5 user\n-rw-r--r--  1 user\n\n$ _", classes="terminal-area")
+            yield Static("🤖 AI Assistant\n🟢 AI Active\n\n┌──────────────────┐\n│ Suggestions      │\n│ will appear      │\n│ here...          │\n└──────────────────┘\n\n[Clear] [Analyze]", classes="ai-sidebar")
             
         yield Footer()
     
