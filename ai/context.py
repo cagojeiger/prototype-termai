@@ -9,6 +9,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 from collections import deque
+from typing import Deque
 from enum import Enum
 
 
@@ -41,7 +42,7 @@ class CommandContext:
     command_type: CommandType
     relevance_score: float = 0.0
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Calculate relevance score after initialization."""
         self.relevance_score = self._calculate_relevance()
     
@@ -120,7 +121,7 @@ class SessionContext:
     git_status: Optional[Dict] = None
     system_info: Dict[str, str] = field(default_factory=dict)
     
-    def update_git_status(self, branch: str, status: str, has_changes: bool):
+    def update_git_status(self, branch: str, status: str, has_changes: bool) -> None:
         """Update git repository status."""
         self.git_status = {
             "branch": branch,
@@ -147,14 +148,14 @@ class ContextWindow:
     def __init__(self, max_commands: int = 20, max_tokens: int = 4000):
         self.max_commands = max_commands
         self.max_tokens = max_tokens
-        self.commands: deque[CommandContext] = deque(maxlen=max_commands)
+        self.commands: Deque[CommandContext] = deque(maxlen=max_commands)
         self.session: SessionContext = SessionContext(
             current_directory="/",
             shell_type="bash"
         )
         self._important_commands: List[CommandContext] = []
     
-    def add_command(self, context: CommandContext):
+    def add_command(self, context: CommandContext) -> None:
         """Add a new command context to the window."""
         self.commands.append(context)
         
@@ -204,7 +205,7 @@ class ContextWindow:
         type_commands = [cmd for cmd in self.commands if cmd.command_type == command_type]
         return sorted(type_commands, key=lambda x: x.timestamp, reverse=True)[:limit]
     
-    def update_session_context(self, **kwargs):
+    def update_session_context(self, **kwargs) -> None:
         """Update session context information."""
         for key, value in kwargs.items():
             if hasattr(self.session, key):
@@ -237,7 +238,7 @@ class ContextWindow:
         
         return "\n".join(summary_parts)
     
-    def clear(self):
+    def clear(self) -> None:
         """Clear all context data."""
         self.commands.clear()
         self._important_commands.clear()
@@ -250,7 +251,7 @@ class ContextWindow:
         total_commands = len(self.commands)
         error_count = sum(1 for cmd in self.commands if cmd.exit_code != 0)
         
-        type_counts = {}
+        type_counts: Dict[str, int] = {}
         for cmd in self.commands:
             type_name = cmd.command_type.value
             type_counts[type_name] = type_counts.get(type_name, 0) + 1
