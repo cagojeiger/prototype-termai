@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from typing import Callable, List, Optional
 
 from .buffer import OutputBuffer
@@ -10,14 +11,16 @@ from .history import CommandHistory
 class TerminalManager:
     """터미널 기능 통합 관리"""
 
-    def __init__(self):
+    def __init__(self, ai_analyzer=None):
         self.emulator = TerminalEmulator()
         self.buffer = OutputBuffer()
         self.history = CommandHistory()
+        self.ai_analyzer = ai_analyzer
 
         self.current_directory = os.getcwd()
         self.current_command = ""
         self.command_running = False
+        self.command_start_time = None
 
         self.prompt_patterns = [
             re.compile(r".*[$#]\s*$"),  # bash/sh
@@ -57,6 +60,7 @@ class TerminalManager:
 
         self.current_command = command.strip()
         self.command_running = True
+        self.command_start_time = time.time()
 
         self.history.start_command(self.current_command, self.current_directory)
 
@@ -116,7 +120,12 @@ class TerminalManager:
 
         if self.command_running:
             if self._is_prompt_line(text):
-                self._end_command(0)  # 성공으로 가정
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(self._end_command(0))  # 성공으로 가정
+                except RuntimeError:
+                    asyncio.run(self._end_command(0))
 
         if self.on_output:
             self.on_output(text)
@@ -124,25 +133,42 @@ class TerminalManager:
     def _handle_exit(self, exit_code: int):
         """프로세스 종료 처리"""
         if self.command_running:
-            self._end_command(exit_code)
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                loop.create_task(self._end_command(exit_code))
+            except RuntimeError:
+                asyncio.run(self._end_command(exit_code))
 
-    def _end_command(self, exit_code: int):
+    async def _end_command(self, exit_code: int, output: str = "", error: str = ""):
         """명령어 종료 처리"""
         if not self.command_running:
             return
 
         self.command_running = False
 
-        output = self._output_buffer.strip()
+        if not output:
+            output = self._output_buffer.strip()
         self._output_buffer = ""
 
-        error = None
-        if exit_code != 0:
+        if not error and exit_code != 0:
             lines = output.split("\n")
             if len(lines) > 1:
                 error = "\n".join(lines[-3:])  # 마지막 3줄
 
+        duration = time.time() - self.command_start_time if self.command_start_time else 0
+
         self.history.end_command(exit_code, output, error or "")
+
+        if self.ai_analyzer:
+            await self.ai_analyzer.context_manager.process_command(
+                command=self.current_command,
+                directory=self.current_directory,
+                exit_code=exit_code,
+                output=output,
+                error=error or "",
+                duration=duration
+            )
 
         if self.on_command_end:
             self.on_command_end(self.current_command, exit_code)

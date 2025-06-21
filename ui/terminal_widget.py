@@ -40,21 +40,23 @@ class TerminalWidget(Static):
             self.output = output
             super().__init__()
 
-    def __init__(self, test_mode: bool = False, **kwargs):
+    def __init__(self, test_mode: bool = False, ai_analyzer=None, **kwargs):
         """Initialize the terminal widget.
 
         Args:
             test_mode: If True, run without actual terminal integration
+            ai_analyzer: Optional RealtimeAnalyzer instance for AI features
             **kwargs: Additional keyword arguments passed to Static
         """
         super().__init__(**kwargs)
         self.test_mode = test_mode
+        self.ai_analyzer = ai_analyzer
         self.terminal_manager: Optional["TerminalManager"] = None
         self.console = Console()
 
         if not test_mode and TerminalManager is not None:
             try:
-                self.terminal_manager = TerminalManager()
+                self.terminal_manager = TerminalManager(ai_analyzer=ai_analyzer)
             except Exception as e:
                 self.log(f"Failed to initialize terminal manager: {e}")
                 self.test_mode = True
