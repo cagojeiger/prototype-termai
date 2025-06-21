@@ -9,6 +9,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Header, Footer, Static
 from .terminal_widget import TerminalWidget
+from .ai_sidebar import AISidebar
 
 
 class TerminalAIApp(App):
@@ -55,7 +56,7 @@ class TerminalAIApp(App):
         
         with Horizontal(id="main-container"):
             yield TerminalWidget(test_mode=True, classes="terminal-area")
-            yield Static("🤖 AI Assistant\n🟢 AI Active\n\n┌──────────────────┐\n│ Suggestions      │\n│ will appear      │\n│ here...          │\n└──────────────────┘\n\n[Clear] [Analyze]", classes="ai-sidebar")
+            yield AISidebar(classes="ai-sidebar")
             
         yield Footer()
     
@@ -73,7 +74,11 @@ class TerminalAIApp(App):
     
     def action_toggle_ai(self) -> None:
         """Toggle AI assistance on/off."""
-        pass
+        try:
+            ai_sidebar = self.query_one(AISidebar)
+            ai_sidebar.set_ai_status(not ai_sidebar.ai_status)
+        except Exception as e:
+            self.log(f"Error toggling AI: {e}")
     
     def action_help(self) -> None:
         """Show help information."""
