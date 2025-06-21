@@ -62,16 +62,19 @@ class AISidebar(Static):
     
     def _update_status_display(self) -> None:
         """Update the AI status display."""
-        status_widget = self.query_one("#ai-status", Static)
-        
-        if self.ai_status:
-            status_widget.update("🟢 AI Active")
-            status_widget.remove_class("disabled")
-            status_widget.add_class("active")
-        else:
-            status_widget.update("🔴 AI Disabled")
-            status_widget.remove_class("active")
-            status_widget.add_class("disabled")
+        try:
+            status_widget = self.query_one("#ai-status", Static)
+            
+            if self.ai_status:
+                status_widget.update("🟢 AI Active")
+                status_widget.remove_class("disabled")
+                status_widget.add_class("active")
+            else:
+                status_widget.update("🔴 AI Disabled")
+                status_widget.remove_class("active")
+                status_widget.add_class("disabled")
+        except Exception:
+            pass
     
     def set_ai_status(self, enabled: bool) -> None:
         """Set the AI status."""
