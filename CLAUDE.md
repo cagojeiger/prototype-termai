@@ -17,7 +17,7 @@ prototype-termai is a Terminal AI Assistant that provides real-time AI-powered a
 ### Module Structure
 ```
 terminal/    - Terminal emulation (TerminalEmulator, OutputBuffer, CommandHistory)
-ui/          - TUI components (TerminalAIApp, TerminalWidget, AISidebar) 
+ui/          - TUI components (TerminalAIApp, TerminalWidget, AISidebar)
 ai/          - AI integration (OllamaClient, ContextManager, TriggerManager)
 utils/       - Core utilities (EventBus, PerformanceProfiler, MemoryManager)
 ```
@@ -26,49 +26,54 @@ utils/       - Core utilities (EventBus, PerformanceProfiler, MemoryManager)
 
 ### Initial Setup
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # macOS/Linux
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install dependencies and create virtual environment
+uv sync
 
 # Install Ollama and models
 ollama serve  # Run in separate terminal
 ollama pull codellama:7b
 
-# Install dependencies (after creating requirements.txt from plan/01-setup.md)
-pip install -r requirements.txt
+# Set up pre-commit hooks
+uv run pre-commit install
 
-# Create project structure
+# Create project structure (if needed)
 mkdir -p terminal ui ai utils tests
 ```
 
 ### Running Tests
 ```bash
 # Test terminal wrapper
-python test_terminal.py
+uv run python test_terminal.py
 
 # Test UI components
-python test_ui.py
+uv run python test_ui.py
 
 # Test Ollama integration
-python test_ollama.py
+uv run python test_ollama.py
 
 # Test context management
-python test_context.py
+uv run python test_context.py
 
 # Run all tests (once implemented)
-python -m pytest tests/
+uv run pytest tests/
+
+# Run pre-commit checks
+uv run pre-commit run --all-files
 ```
 
 ### Running the Application
 ```bash
 # Basic run
-python main.py
+uv run python main.py
 
 # With debugging
-python main.py --debug --log-level=DEBUG
+uv run python main.py --debug --log-level=DEBUG
 
 # Performance profiling
-python -m cProfile -o profile.stats main.py
+uv run python -m cProfile -o profile.stats main.py
 ```
 
 ## Critical Implementation Details
@@ -133,7 +138,7 @@ AI_RESPONSE_MAX_TOKENS=500
 
 Follow the numbered plan files in order:
 1. `plan/01-setup.md` - Environment setup
-2. `plan/02-basic-terminal.md` - Terminal wrapper 
+2. `plan/02-basic-terminal.md` - Terminal wrapper
 3. `plan/03-tui-framework.md` - UI implementation
 4. `plan/04-ollama-integration.md` - AI integration
 5. `plan/05-context-management.md` - Context system

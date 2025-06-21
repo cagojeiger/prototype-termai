@@ -10,23 +10,32 @@ Terminal AI Assistant 개발을 위한 환경을 설정하고 필요한 도구�
 - Git
 - 터미널 환경
 
-## Step 1: Python 가상환경 설정
+## Step 1: Python 환경 설정 (uv 사용)
 
+### uv 설치
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 또는 pip로 설치 (uv가 없는 경우)
+pip install uv
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+### 프로젝트 초기화
 ```bash
 # 프로젝트 디렉토리로 이동
-cd ~/project/test-tui
+cd ~/project/prototype-termai
 
-# Python 가상환경 생성
-python3 -m venv venv
+# uv로 프로젝트 초기화 (pyproject.toml 기반)
+uv init --python 3.8
 
-# 가상환경 활성화
-# macOS/Linux:
-source venv/bin/activate
-# Windows:
-# venv\Scripts\activate
-
-# pip 업그레이드
-pip install --upgrade pip
+# 가상환경 생성 및 활성화
+uv venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
 ```
 
 ## Step 2: Ollama 설치
@@ -65,37 +74,31 @@ ollama pull mistral:7b
 ollama run codellama:7b "Hello, can you help with Python?"
 ```
 
-## Step 4: 프로젝트 의존성 설치
+## Step 4: 프로젝트 의존성 설치 (uv 사용)
 
-### requirements.txt 생성
+### 핵심 의존성 설치
 ```bash
-cat > requirements.txt << 'EOF'
-# Core dependencies
-textual==0.47.1          # TUI framework
-httpx==0.25.2           # Async HTTP client for Ollama
-pydantic==2.5.2         # Configuration management
-pydantic-settings==2.1.0
-rich==13.7.0            # Terminal formatting (Textual dependency)
+# 핵심 의존성 설치
+uv add textual==0.47.1 httpx==0.25.2 pydantic==2.5.2 pydantic-settings==2.1.0 rich==13.7.0 python-dotenv==1.0.0
 
-# Development dependencies
-pytest==7.4.3           # Testing framework
-pytest-asyncio==0.23.2  # Async test support
-black==23.12.1          # Code formatter
-ruff==0.1.8             # Linter
-mypy==1.7.1             # Type checker
-
-# Optional but recommended
-python-dotenv==1.0.0    # Environment variable management
-EOF
-```
-
-### 패키지 설치
-```bash
-# 의존성 설치
-pip install -r requirements.txt
+# 개발 의존성 설치
+uv add --dev pytest==7.4.3 pytest-asyncio==0.23.2 black==23.12.1 ruff==0.1.8 mypy==1.7.1 pre-commit==3.6.0
 
 # 설치 확인
-pip list
+uv pip list
+
+# pre-commit 설정
+uv run pre-commit install
+```
+
+### 기존 프로젝트에서 uv로 마이그레이션 (선택사항)
+```bash
+# 기존 requirements.txt가 있는 경우
+# pyproject.toml로 수동 변환 후 uv sync 사용
+
+# 또는 기존 환경에서 의존성 확인
+uv pip list  # 현재 설치된 패키지 확인
+uv sync      # pyproject.toml 기반으로 동기화
 ```
 
 ## Step 5: 프로젝트 구조 생성
@@ -181,16 +184,40 @@ AI_TEMPERATURE=0.7
 EOF
 ```
 
-### pyproject.toml (프로젝트 설정)
-```bash
-cat > pyproject.toml << 'EOF'
+### pyproject.toml (자동 생성됨)
+uv를 사용하면 `pyproject.toml` 파일이 자동으로 생성되며, 프로젝트 메타데이터와 의존성이 관리됩니다.
+
+```toml
+# pyproject.toml 예시 (uv가 자동 생성)
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "prototype-termai"
+version = "0.1.0"
+description = "Terminal AI Assistant"
+requires-python = ">=3.8"
+dependencies = [
+    "textual==0.47.1",
+    "httpx==0.25.2",
+    # ... 기타 의존성
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.3",
+    "black==23.12.1",
+    # ... 개발 의존성
+]
+
 [tool.black]
 line-length = 88
 target-version = ['py38']
 
 [tool.ruff]
 select = ["E", "F", "W", "B", "I", "N", "UP", "C90"]
-ignore = ["E501"]  # Line too long
+ignore = ["E501"]
 line-length = 88
 target-version = "py38"
 
@@ -199,7 +226,6 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-EOF
 ```
 
 ## Step 7: VS Code 설정 (선택사항)
@@ -257,7 +283,7 @@ from textual.widgets import Header, Footer, Static
 
 class TestApp(App):
     """기본 Textual 앱 테스트"""
-    
+
     def compose(self):
         yield Header()
         yield Static("Terminal AI Assistant - Setup Test")
@@ -278,7 +304,7 @@ if __name__ == "__main__":
     print("1. Textual 테스트 (종료: Ctrl+C)")
     app = TestApp()
     app.run()
-    
+
     # Ollama 테스트
     print("\n2. Ollama 연결 테스트")
     asyncio.run(test_ollama())
@@ -286,6 +312,11 @@ if __name__ == "__main__":
 
 ### 테스트 실행
 ```bash
+# uv를 사용한 실행
+uv run python test_setup.py
+
+# 또는 가상환경 활성화 후
+source .venv/bin/activate
 python test_setup.py
 ```
 
@@ -319,9 +350,9 @@ sudo chmod 666 /dev/ptmx
 
 ### Python 패키지 설치 실패
 ```bash
-# 캐시 삭제 후 재설치
-pip cache purge
-pip install --no-cache-dir -r requirements.txt
+# uv 캐시 삭제 후 재설치
+uv cache clean
+uv sync --reinstall
 ```
 
 ## 다음 단계
