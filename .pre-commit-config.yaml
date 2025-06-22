@@ -19,7 +19,7 @@ repos:
     rev: 25.1.0
     hooks:
       - id: black
-        language_version: python3
+        language_version: python3.12
         args: [--line-length=88]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
@@ -32,6 +32,7 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
+        language_version: python3.12
         args: [--ignore-missing-imports, --no-warn-unused-ignores, --allow-untyped-defs, --allow-incomplete-defs, --no-strict-optional]
         files: ^(terminal|ui|ai|utils)/
         additional_dependencies: ["textual>=0.47.1", "rich>=13.0.0", "pydantic>=2.5.0", "httpx>=0.25.0"]
